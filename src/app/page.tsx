@@ -116,7 +116,7 @@ export default function Home() {
             whileTap={{ scale: 0.95 }}
           >
             <Link
-              href="/book"
+              href="/auth/register"
               className="bg-blue-500/80 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition backdrop-blur-sm block"
             >
               Book a Technician
@@ -130,7 +130,7 @@ export default function Home() {
             whileTap={{ scale: 0.95 }}
           >
             <Link
-              href="/become"
+              href="/auth/register"
               className="bg-green-500/80 hover:bg-green-500 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition backdrop-blur-sm block"
             >
               Become a Technician
@@ -141,7 +141,7 @@ export default function Home() {
         {/* Login Link */}
         <motion.p variants={item} className="mt-6 text-gray-200">
           Already have an account?{" "}
-          <Link href="/login" className="text-blue-300 hover:underline">
+          <Link href="/auth/login" className="text-blue-300 hover:underline">
             Login
           </Link>
         </motion.p>
