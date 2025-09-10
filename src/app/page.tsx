@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Wrench } from "lucide-react";
 import { motion } from "framer-motion";
+import { easeInOut, easeOut } from "framer-motion";
 
 // Animation variants
 const container = {
@@ -17,7 +18,7 @@ const item = {
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
+    transition: { duration: 0.6, ease: easeOut }, // ✅ fixed
   },
 };
 
@@ -29,11 +30,11 @@ const heroWrenchAnimation = {
     y: [0, -10, 0],
   },
   transition: {
-    delay: 3, // wait 3 seconds before nudging
+    delay: 3,
     duration: 1.5,
-    ease: "easeInOut",
+    ease: easeInOut, // ✅ fixed
     repeat: Infinity,
-    repeatDelay: 5, // wait 5s between nudges
+    repeatDelay: 5,
   },
 };
 

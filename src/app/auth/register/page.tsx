@@ -2,21 +2,14 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Wrench } from "lucide-react";
+import { Wrench, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import nigeriaData from "@/data/nigeriaStates.json";
 
 const wrenchAnimation = {
   initial: { scale: 1 },
-  animate: {
-    scale: [1, 1.2, 1],
-    y: [0, -10, 0],
-  },
-  transition: {
-    duration: 1.5,
-    ease: "easeInOut",
-    repeat: Infinity,
-    repeatDelay: 4,
-  },
+  animate: { scale: [1, 1.2, 1], y: [0, -10, 0] },
+  transition: { duration: 1.5, ease: "easeInOut" as const, repeat: Infinity, repeatDelay: 4 },
 };
 
 export default function Register() {
@@ -25,12 +18,17 @@ export default function Register() {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
     skill: "",
+    state: "",
+    city: "",
+    address: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -38,6 +36,13 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Confirm password check
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match!");
+      setLoading(false);
+      return;
+    }
 
     // 1. Create user in Supabase Auth
     const { data, error: authError } = await supabase.auth.signUp({
@@ -61,11 +66,13 @@ export default function Register() {
     // 2. Insert into profiles table
     const { error: profileError } = await supabase.from("profiles").insert([
       {
-        id: user.id, // link to auth.users.id
+        id: user.id,
         full_name: form.name,
         role: role,
-        // Save skill only if technician
         skill: role === "technician" ? form.skill : null,
+        state: form.state,
+        city: form.city,
+        address: form.address,
       },
     ]);
 
@@ -111,10 +118,7 @@ export default function Register() {
             initial="initial"
             animate="animate"
             transition={wrenchAnimation.transition}
-            variants={{
-              initial: wrenchAnimation.initial,
-              animate: wrenchAnimation.animate,
-            }}
+            variants={{ initial: wrenchAnimation.initial, animate: wrenchAnimation.animate }}
           >
             <Wrench className="w-20 h-20 text-white drop-shadow-lg" />
           </motion.div>
@@ -127,9 +131,7 @@ export default function Register() {
             onClick={() => setRole("user")}
             type="button"
             className={`flex-1 py-2 rounded-lg ${
-              role === "user"
-                ? "bg-blue-500 text-white"
-                : "bg-white/10 text-gray-200"
+              role === "user" ? "bg-blue-500 text-white" : "bg-white/10 text-gray-200"
             }`}
           >
             User
@@ -138,9 +140,7 @@ export default function Register() {
             onClick={() => setRole("technician")}
             type="button"
             className={`flex-1 py-2 rounded-lg ${
-              role === "technician"
-                ? "bg-green-500 text-white"
-                : "bg-white/10 text-gray-200"
+              role === "technician" ? "bg-green-500 text-white" : "bg-white/10 text-gray-200"
             }`}
           >
             Technician
@@ -167,16 +167,38 @@ export default function Register() {
             className="w-full px-4 py-3 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none"
             required
           />
+
+          {/* Password + Confirm Password */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none pr-12"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
+
           <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={form.password}
+            type={showPassword ? "text" : "password"}
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            value={form.confirmPassword}
             onChange={handleChange}
             className="w-full px-4 py-3 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none"
             required
           />
 
+          {/* Skill (only for technicians) */}
           {role === "technician" && (
             <input
               type="text"
@@ -188,6 +210,53 @@ export default function Register() {
               required
             />
           )}
+
+          {/* State Dropdown */}
+          <select
+            name="state"
+            value={form.state}
+            onChange={(e) => {
+              setForm({ ...form, state: e.target.value, city: "" });
+            }}
+            required
+            className="w-full px-4 py-3 rounded-lg bg-gray-800/90 text-white focus:outline-none appearance-none"
+          >
+            <option value="">Select State</option>
+            {Object.keys(nigeriaData).map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+
+          {/* City Dropdown (depends on state) */}
+          {form.state && (
+            <select
+              name="city"
+              value={form.city}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 rounded-lg bg-gray-800/90 text-white focus:outline-none appearance-none"
+            >
+              <option value="">Select City</option>
+              {(nigeriaData[form.state as keyof typeof nigeriaData] || []).map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {/* Address */}
+          <input
+            type="text"
+            name="address"
+            placeholder="Address"
+            value={form.address}
+            onChange={handleChange}
+            className="w-full px-4 py-3 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none"
+            required
+          />
 
           <button
             type="submit"

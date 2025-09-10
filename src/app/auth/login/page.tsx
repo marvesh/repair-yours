@@ -1,26 +1,17 @@
 "use client";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Wrench } from "lucide-react";
 import { useState } from "react";
-import supabase from "@/lib/supabaseClient"; // ✅ import your Supabase client
+import { Wrench, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-};
-
-// Bouncy spanner animation
 const wrenchAnimation = {
   initial: { scale: 1 },
-  animate: {
-    scale: [1, 1.2, 1],
-    y: [0, -10, 0],
-  },
+  animate: { scale: [1, 1.2, 1], y: [0, -10, 0] },
   transition: {
     duration: 1.5,
-    ease: "easeInOut",
+    ease: "easeInOut" as const, // ✅ fixed typing issue
     repeat: Infinity,
     repeatDelay: 4,
   },
@@ -30,19 +21,18 @@ export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
-  // Handle login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess(false);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       setError(error.message);
@@ -50,8 +40,10 @@ export default function Login() {
       return;
     }
 
-    // ✅ Redirect to dashboard after successful login
-    router.push("/dashboard");
+    setSuccess(true);
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 2000);
   };
 
   return (
@@ -74,18 +66,15 @@ export default function Login() {
 
       {/* Card */}
       <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="show"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
         className="relative z-10 bg-gradient-to-br from-white/20 to-white/10 
         backdrop-blur-2xl border border-white/30 p-10 rounded-2xl shadow-2xl 
         text-center max-w-md w-full mx-4"
       >
-        {/* Title with bouncy spanner */}
-        <motion.h1
-          variants={cardVariants}
-          className="text-3xl font-extrabold text-white mb-6 flex flex-col items-center space-y-3"
-        >
+        {/* Title */}
+        <motion.h1 className="text-3xl font-extrabold text-white mb-6 flex flex-col items-center space-y-3">
           <motion.div
             initial="initial"
             animate="animate"
@@ -101,7 +90,7 @@ export default function Login() {
         </motion.h1>
 
         {/* Form */}
-        <form className="space-y-4" onSubmit={handleLogin}>
+        <form onSubmit={handleLogin} className="space-y-4">
           <input
             type="email"
             placeholder="Email"
@@ -110,26 +99,46 @@ export default function Login() {
             required
             className="w-full px-4 py-3 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none"
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full px-4 py-3 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none"
-          />
+
+          {/* Password with eye toggle */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none pr-12"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white"
+            >
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-blue-500/80 hover:bg-blue-500 text-white font-semibold"
+            className="w-full py-3 rounded-lg bg-blue-500/80 hover:bg-blue-500 text-white font-semibold flex items-center justify-center gap-2"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Login"}
           </button>
         </form>
 
-        {/* Error Message */}
         {error && <p className="text-red-400 mt-3">{error}</p>}
+        {success && (
+          <div className="flex items-center justify-center gap-2 text-green-400 mt-3 font-semibold">
+            <CheckCircle2 className="w-5 h-5" />
+            Login successful! Redirecting...
+          </div>
+        )}
 
         <p className="text-gray-200 mt-6">
           Don’t have an account?{" "}
