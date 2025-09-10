@@ -28,7 +28,9 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -118,7 +120,10 @@ export default function Register() {
             initial="initial"
             animate="animate"
             transition={wrenchAnimation.transition}
-            variants={{ initial: wrenchAnimation.initial, animate: wrenchAnimation.animate }}
+            variants={{
+              initial: wrenchAnimation.initial,
+              animate: wrenchAnimation.animate,
+            }}
           >
             <Wrench className="w-20 h-20 text-white drop-shadow-lg" />
           </motion.div>
@@ -131,7 +136,9 @@ export default function Register() {
             onClick={() => setRole("user")}
             type="button"
             className={`flex-1 py-2 rounded-lg ${
-              role === "user" ? "bg-blue-500 text-white" : "bg-white/10 text-gray-200"
+              role === "user"
+                ? "bg-blue-500 text-white"
+                : "bg-white/10 text-gray-200"
             }`}
           >
             User
@@ -140,7 +147,9 @@ export default function Register() {
             onClick={() => setRole("technician")}
             type="button"
             className={`flex-1 py-2 rounded-lg ${
-              role === "technician" ? "bg-green-500 text-white" : "bg-white/10 text-gray-200"
+              role === "technician"
+                ? "bg-green-500 text-white"
+                : "bg-white/10 text-gray-200"
             }`}
           >
             Technician
@@ -184,7 +193,11 @@ export default function Register() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white"
             >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
             </button>
           </div>
 
@@ -211,40 +224,48 @@ export default function Register() {
             />
           )}
 
-          {/* State Dropdown */}
-          <select
-            name="state"
-            value={form.state}
-            onChange={(e) => {
-              setForm({ ...form, state: e.target.value, city: "" });
-            }}
-            required
-            className="w-full px-4 py-3 rounded-lg bg-gray-800/90 text-white focus:outline-none appearance-none"
-          >
-            <option value="">Select State</option>
-            {Object.keys(nigeriaData).map((state) => (
-              <option key={state} value={state}>
-                {state}
-              </option>
-            ))}
-          </select>
-
-          {/* City Dropdown (depends on state) */}
-          {form.state && (
-            <select
-              name="city"
-              value={form.city}
-              onChange={handleChange}
+          {/* Searchable State Input */}
+          <div className="relative">
+            <input
+              type="text"
+              name="state"
+              placeholder="Search State"
+              value={form.state}
+              onChange={(e) =>
+                setForm({ ...form, state: e.target.value, city: "" })
+              }
+              className="w-full px-4 py-3 rounded-lg bg-gray-800/90 text-white placeholder-gray-300 focus:outline-none"
+              list="states"
               required
-              className="w-full px-4 py-3 rounded-lg bg-gray-800/90 text-white focus:outline-none appearance-none"
-            >
-              <option value="">Select City</option>
-              {(nigeriaData[form.state as keyof typeof nigeriaData] || []).map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
+            />
+            <datalist id="states">
+              {Object.keys(nigeriaData).map((state) => (
+                <option key={state} value={state} />
               ))}
-            </select>
+            </datalist>
+          </div>
+
+          {/* Searchable City Input */}
+          {form.state && (
+            <div className="relative">
+              <input
+                type="text"
+                name="city"
+                placeholder="Search City"
+                value={form.city}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg bg-gray-800/90 text-white placeholder-gray-300 focus:outline-none"
+                list="cities"
+                required
+              />
+              <datalist id="cities">
+                {(nigeriaData[form.state as keyof typeof nigeriaData] || []).map(
+                  (city) => (
+                    <option key={city} value={city} />
+                  )
+                )}
+              </datalist>
+            </div>
           )}
 
           {/* Address */}
