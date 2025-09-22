@@ -53,7 +53,7 @@ export default function Register() {
       email: form.email,
       password: form.password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/login`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/login`,
       },
     });
 
